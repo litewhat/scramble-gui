@@ -3,11 +3,13 @@
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
 
-  :dependencies [[baking-soda "0.2.0" :exclusions [cljsjs/react-bootstrap]]
+  :dependencies [[baking-soda "0.2.0"]
                  [clj-time "0.14.4"]
                  [cljs-ajax "0.7.4"]
-                 [cljsjs/react-popper "0.10.4-0"]
+                 [cljsjs/react "16.3.2-0"]
+                 [cljsjs/react-dom "16.3.2-0"]
                  [cljsjs/react-transition-group "2.3.1-0"]
+                 [cljsjs/react-popper "0.10.4-0"]
                  [com.cognitect/transit-java "0.8.337"]
                  [compojure "1.6.1"]
                  [cprop "0.1.11"]
@@ -27,7 +29,8 @@
                  [org.webjars/bootstrap "4.1.3"]
                  [org.webjars/font-awesome "5.2.0"]
                  [org.webjars/webjars-locator "0.34"]
-                 [reagent "0.8.1"]
+                 [reagent "0.8.1" :exclusions [cljsjs/react
+                                               cljsjs/react-dom]]
                  [ring-webjars "0.2.0"]
                  [ring/ring-core "1.6.3"]
                  [ring/ring-defaults "0.3.2"]
