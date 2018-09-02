@@ -10,34 +10,65 @@
   (:import goog.History))
 
 
-(defonce session (r/atom {:page :scramble}))
+(defonce session (r/atom {:page :scramble
+                          :scramble/available-letters "asdasdasdasd"
+                          :scramble/searched-word "kupa"}))
 
 (defn scramble-header []
   [:div.jumbotron
    [:h1 "Scramble"]])
 
 (defn scramble-form []
-  [:form
-   [:div.form-group
-    [:label {:for "available-letters-input"} "Available letters"]
-    [:input {:id    "available-letters-input"
-             :type  "text"
-             :class "form-control form-control-lg"}]]
+  [:div.container
+   [:form
+    [:div.form-group
+     [:label {:for "available-letters-input"} "Available letters"]
+     [:input {:id        "available-letters-input"
+              :type      "text"
+              :class     "form-control form-control-lg"
+              :value     (:scramble/available-letters @session)
+              :on-change (fn [this]
+                           (let [new-val (-> this .-target .-value)]
+                             (swap! session
+                                    assoc
+                                    :scramble/available-letters
+                                    new-val)))}]]
 
-   [:div.form-group
-    [:label {:for "searched-letters-input"} "Searched letters"]
-    [:input {:id    "searched-letters-input"
-             :type  "text"
-             :class "form-control form-control-lg"}]]
+    [:div.form-group
+     [:label {:for "searched-letters-input"} "Searched letters"]
+     [:input {:id        "searched-letters-input"
+              :type      "text"
+              :class     "form-control form-control-lg"
+              :value     (:scramble/searched-word @session)
+              :on-change (fn [this]
+                           (let [new-val (-> this .-target .-value)]
+                             (swap! session
+                                    assoc
+                                    :scramble/searched-word
+                                    new-val)))}]]
 
-   [:button {:type "button"
-             :class "btn btn-success"}
-    "Some action! "]])
+    [:button {:type     "button"
+              :class    "btn btn-success"
+              :on-click (fn []
+                          (swap!
+                            session
+                            assoc
+                            :scramble/result
+                            "mocked-true"))}
+     "Some action! "]]])
+
+(defn scramble-result []
+  [:div.container
+   [:div.row
+    [:div.col-sm-12
+     (if-let [result (:scramble/result @session)]
+       (str result))]]])
 
 (defn scramble-page []
   [:div.container
    [scramble-header]
-   [scramble-form]])
+   [scramble-form]
+   [scramble-result]])
 
 (def pages
   {:scramble #'scramble-page})
