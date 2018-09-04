@@ -4,7 +4,7 @@
   :url "http://example.com/FIXME"
 
   :dependencies [[baking-soda "0.2.0"]
-                 [clj-http "3.9.1"]
+                 [cljs-http "0.1.45"]
                  [clj-time "0.14.4"]
                  [cljs-ajax "0.7.4"]
                  [cljsjs/react "16.3.2-0"]
