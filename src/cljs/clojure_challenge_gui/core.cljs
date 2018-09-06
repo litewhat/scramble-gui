@@ -14,19 +14,19 @@
 (defonce scramble-response (r/atom {}))
 
 (go (POST "/scramble"
-          {:params {:str1 "abracadabra" :str2 "barabara"}
-           :format :json
+          {:params          {:str1 "abracadabra" :str2 "barabara"}
+           :format          :json
            :response-format :json
-           :keywords? true
-           :handler (fn [resp]
-                      (reset! @scramble-response resp)
-                      (.log js/console (str "Response " resp)))
-           :error-handler (fn [{:keys [status status-text]}]
-                            (.log js/console
-                                  (str "something bad happened: "
-                                       status
-                                       " "
-                                       status-text)))}))
+           :keywords?       true
+           :handler         (fn [resp]
+                              (reset! scramble-response resp)
+                              (.log js/console (str "Response " resp)))
+           :error-handler   (fn [{:keys [status status-text]}]
+                              (.log js/console
+                                    (str "something bad happened: "
+                                         status
+                                         " "
+                                         status-text)))}))
 
 (defonce session (r/atom {:page                       :scramble
                           :scramble/available-letters "asdasdasdasd"
