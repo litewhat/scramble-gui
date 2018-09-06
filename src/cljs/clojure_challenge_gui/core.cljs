@@ -1,31 +1,32 @@
 (ns clojure-challenge-gui.core
   (:require-macros [cljs.core.async.macros :refer [go]])
-  (:require [baking-soda.core :as b]
-            [cljs-http.client :as http]
-            [reagent.core :as r]
+  (:require [reagent.core :as r]
             [goog.events :as events]
             [goog.history.EventType :as HistoryEventType]
             [markdown.core :refer [md->html]]
             [clojure-challenge-gui.ajax :as ajax]
             [ajax.core :refer [GET POST]]
-            [secretary.core :as secretary :include-macros true]
-            [cljs.core.async :as async])
+            [ajax.formats :as formats]
+            [secretary.core :as secretary :include-macros true])
   (:import goog.History))
 
 
-;(def scramble-api-channel (http/get
-;                            "localhost:8000"
-;                            {:json-params {:str1 "abracadabra"
-;                                           :str2 "barabara"}}))
+(defonce scramble-response (r/atom {}))
 
-(defonce http-client-response (r/atom {}))
-
-(go (let [response (async/<! (http/post "http://localhost:8000/api/scramble"
-                                        {:with-credentials? false
-                                         :json-params {:str1 "abracadabra"
-                                                       :str2 "barabara"}}))]
-      (swap! http-client-response assoc :scramble/result response)
-      (print (:status response))))
+(go (POST "/scramble"
+          {:params {:str1 "abracadabra" :str2 "barabara"}
+           :format :json
+           :response-format :json
+           :keywords? true
+           :handler (fn [resp]
+                      (reset! @scramble-response resp)
+                      (.log js/console (str "Response " resp)))
+           :error-handler (fn [{:keys [status status-text]}]
+                            (.log js/console
+                                  (str "something bad happened: "
+                                       status
+                                       " "
+                                       status-text)))}))
 
 (defonce session (r/atom {:page                       :scramble
                           :scramble/available-letters "asdasdasdasd"
@@ -52,37 +53,38 @@
                                   :scramble/available-letters
                                   new-val)))}]])
 
-(defn searched-letters-form-input []
-  [:div.form-group
-   [:label {:for "searched-letters-input"} "Searched letters"]
-   [:input {:id        "searched-letters-input"
-            :type      "text"
-            :class     "form-control form-control-lg"
-            :value     (:scramble/searched-word @session)
-            :on-change (fn [this]
-                         (let [new-val (-> this .-target .-value)]
-                           (swap! session
-                                  assoc
-                                  :scramble/searched-word
-                                  new-val)))}]])
+(defn searched-word-form-input []
+  (let [on-change-fn (fn [this]
+                       (let [new-val (-> this .-target .-value)]
+                         (swap! session
+                                assoc
+                                :scramble/searched-word
+                                new-val)))]
+    [:div.form-group
+     [:label {:for "searched-letters-input"} "Searched letters"]
+     [:input {:id        "searched-letters-input"
+              :type      "text"
+              :class     "form-control form-control-lg"
+              :value     (:scramble/searched-word @session)
+              :on-change on-change-fn}]]))
 
 (defn send-scramble-form-button []
-  [:button {:type     "button"
-            :class    "btn btn-success"
-            :on-click (fn []
-                        (swap!
-                          session
-                          assoc
-                          :scramble/result
-                          "mocked-true"))}
-   "Some action! "])
+  (let [on-click-fn (fn []
+                      (swap!
+                        session
+                        assoc
+                        :scramble/result
+                        "mocked-true"))]
+    [:button
+     {:type "button" :class "btn btn-success" :on-click on-click-fn}
+     "Some action! "]))
 
 
 (defn scramble-form []
   [:div.container
    [:form
     [available-letters-form-input]
-    [searched-letters-form-input]
+    [searched-word-form-input]
     [send-scramble-form-button]]])
 
 (defn scramble-result []
