@@ -13,59 +13,82 @@
 
 (defonce scramble-response (r/atom {}))
 
-(go (POST "/scramble"
+
+(defn ajax-handler [{:keys [body headers status] :as resp}]
+  (reset! scramble-response resp)
+  (js/console.log (str "Received response"
+                       " | Response: " resp
+                       " | Headers: " headers
+                       " | Status: " status
+                       " | Body: " body)))
+
+(defn ajax-error-handler [{:keys [body headers status status-text] :as resp}]
+  (reset! scramble-response resp)
+  (js/console.log
+    (str "Something bad happened!"
+         " | Response: " resp
+         " | Headers: " headers
+         " | Status: " status
+         " | Status-text: " status-text
+         " | Body: " body)))
+
+(defn make-good-call! []
+  (go
+    (POST "/scramble"
           {:params          {:str1 "abracadabra" :str2 "barabara"}
            :format          :json
            :response-format :json
            :keywords?       true
-           :handler         (fn [resp]
-                              (reset! scramble-response resp)
-                              (.log js/console (str "Response " resp)))
-           :error-handler   (fn [{:keys [status status-text]}]
-                              (.log js/console
-                                    (str "something bad happened: "
-                                         status
-                                         " "
-                                         status-text)))}))
+           :headers         {"Access-Control-Allow-Headers" "Content-Type"
+                             "Access-Control-Allow-Origin"  "*"}
+           :handler         ajax-handler
+           :error-handler   ajax-error-handler})))
+
 
 (defonce session (r/atom {:page                       :scramble
                           :scramble/available-letters "asdasdasdasd"
                           :scramble/searched-word     "kupa"
                           :scramble/result            nil
-                                                      ;(go (async/<! scramble-api-channel))
+                          ;(go (async/<! scramble-api-channel))
                           }))
 
 (defn scramble-header []
   [:div.jumbotron
    [:h1 "Scramble"]])
 
+
 (defn available-letters-form-input []
-  [:div.form-group
-   [:label {:for "available-letters-input"} "Available letters"]
-   [:input {:id        "available-letters-input"
-            :type      "text"
-            :class     "form-control form-control-lg"
-            :value     (:scramble/available-letters @session)
-            :on-change (fn [this]
-                         (let [new-val (-> this .-target .-value)]
-                           (swap! session
-                                  assoc
-                                  :scramble/available-letters
-                                  new-val)))}]])
+  (let [initial-value (:scramble/available-letters @session)
+        on-change-fn  (fn [this]
+                        (let [new-val (-> this .-target .-value)]
+                          (swap!
+                            session
+                            assoc
+                            :scramble/available-letters
+                            new-val)))]
+    [:div.form-group
+     [:label {:for "available-letters-input"} "Available letters"]
+     [:input {:id        "available-letters-input"
+              :type      "text"
+              :class     "form-control form-control-lg"
+              :value     initial-value
+              :on-change on-change-fn}]]))
 
 (defn searched-word-form-input []
-  (let [on-change-fn (fn [this]
-                       (let [new-val (-> this .-target .-value)]
-                         (swap! session
-                                assoc
-                                :scramble/searched-word
-                                new-val)))]
+  (let [initial-value (:scramble/searched-word @session)
+        on-change-fn  (fn [this]
+                        (let [new-val (-> this .-target .-value)]
+                          (swap!
+                            session
+                            assoc
+                            :scramble/searched-word
+                            new-val)))]
     [:div.form-group
      [:label {:for "searched-letters-input"} "Searched letters"]
      [:input {:id        "searched-letters-input"
               :type      "text"
               :class     "form-control form-control-lg"
-              :value     (:scramble/searched-word @session)
+              :value     initial-value
               :on-change on-change-fn}]]))
 
 (defn send-scramble-form-button []
@@ -119,11 +142,11 @@
 ;; must be called after routes have been defined
 (defn hook-browser-navigation! []
   (doto (History.)
-        (events/listen
-          HistoryEventType/NAVIGATE
-          (fn [event]
-            (secretary/dispatch! (.-token event))))
-        (.setEnabled true)))
+    (events/listen
+      HistoryEventType/NAVIGATE
+      (fn [event]
+        (secretary/dispatch! (.-token event))))
+    (.setEnabled true)))
 
 ;; -------------------------
 

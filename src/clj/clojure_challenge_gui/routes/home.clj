@@ -5,7 +5,9 @@
             [clojure.java.io :as io]))
 
 (defn home-page []
-  (layout/render "home.html"))
+  (-> (layout/render "home.html")
+      (response/header "Access-Control-Allow-Headers" "Content-Type")
+      (response/header "Access-Control-Allow-Origin" "*")))
 
 (defroutes home-routes
   (GET "/" []
