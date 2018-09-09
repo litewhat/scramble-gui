@@ -32,15 +32,14 @@
          " | Status-text: " status-text
          " | Body: " body)))
 
-(defn make-good-call! []
+;; TODO: Manage problem with CORS headers.
+(defn make-example-ajax-call []
   (go
-    (POST "/scramble"
+    (POST "http://localhost:8000/api/scramble"
           {:params          {:str1 "abracadabra" :str2 "barabara"}
            :format          :json
            :response-format :json
            :keywords?       true
-           :headers         {"Access-Control-Allow-Headers" "Content-Type"
-                             "Access-Control-Allow-Origin"  "*"}
            :handler         ajax-handler
            :error-handler   ajax-error-handler})))
 
@@ -51,10 +50,6 @@
                           :scramble/result            nil
                           ;(go (async/<! scramble-api-channel))
                           }))
-
-(defn scramble-header []
-  [:div.jumbotron
-   [:h1 "Scramble"]])
 
 
 (defn available-letters-form-input []
@@ -103,6 +98,10 @@
      "Some action! "]))
 
 
+(defn scramble-header []
+  [:div.jumbotron
+   [:h1 "Scramble"]])
+
 (defn scramble-form []
   [:div.container
    [:form
@@ -123,11 +122,13 @@
    [scramble-form]
    [scramble-result]])
 
+
 (def pages
   {:scramble #'scramble-page})
 
 (defn page []
   [(pages (:page @session))])
+
 
 ;; -------------------------
 ;; Routes
@@ -136,6 +137,7 @@
 
 (secretary/defroute "/scramble" []
   (swap! session assoc :page :scramble))
+
 
 ;; -------------------------
 ;; History
@@ -147,6 +149,7 @@
       (fn [event]
         (secretary/dispatch! (.-token event))))
     (.setEnabled true)))
+
 
 ;; -------------------------
 
