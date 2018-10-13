@@ -6,7 +6,6 @@
             [markdown.core :refer [md->html]]
             [clojure-challenge-gui.ajax :as ajax]
             [ajax.core :refer [GET POST]]
-            [ajax.formats :as formats]
             [secretary.core :as secretary :include-macros true])
   (:import goog.History))
 
@@ -14,8 +13,14 @@
 (defonce scramble-response (r/atom {}))
 
 
+(defonce session (r/atom {:page                       :scramble
+                          :scramble/available-letters "iseeyou:)"
+                          :scramble/searched-word     "me?"
+                          :scramble/result            nil}))
+
 (defn ajax-handler [{:keys [body headers status] :as resp}]
   (reset! scramble-response resp)
+  (swap! session assoc :scramble/result resp)
   (js/console.log (str "Received response"
                        " | Response: " resp
                        " | Headers: " headers
@@ -32,24 +37,17 @@
          " | Status-text: " status-text
          " | Body: " body)))
 
-;; TODO: Manage problem with CORS headers.
+
 (defn make-example-ajax-call []
   (go
     (POST "http://localhost:8000/api/scramble"
-          {:params          {:str1 "abracadabra" :str2 "barabara"}
+          {:params          {:str1 (:scramble/available-letters @session)
+                             :str2 (:scramble/searched-word @session)}
            :format          :json
            :response-format :json
            :keywords?       true
            :handler         ajax-handler
            :error-handler   ajax-error-handler})))
-
-
-(defonce session (r/atom {:page                       :scramble
-                          :scramble/available-letters "asdasdasdasd"
-                          :scramble/searched-word     "kupa"
-                          :scramble/result            nil
-                          ;(go (async/<! scramble-api-channel))
-                          }))
 
 
 (defn available-letters-form-input []
@@ -69,17 +67,15 @@
               :value     initial-value
               :on-change on-change-fn}]]))
 
+(defn value [x] (-> x .-target .-value))
+
 (defn searched-word-form-input []
-  (let [initial-value (:scramble/searched-word @session)
-        on-change-fn  (fn [this]
-                        (let [new-val (-> this .-target .-value)]
-                          (swap!
-                            session
-                            assoc
-                            :scramble/searched-word
-                            new-val)))]
+  (let [initial-value (get @session :scramble/searched-word)
+        on-change-fn  (fn [field]
+                        (swap! session assoc :scramble/searched-word (value field)))]
     [:div.form-group
-     [:label {:for "searched-letters-input"} "Searched letters"]
+     [:label {:for "searched-letters-input"}
+      "Searched letters"]
      [:input {:id        "searched-letters-input"
               :type      "text"
               :class     "form-control form-control-lg"
@@ -87,15 +83,9 @@
               :on-change on-change-fn}]]))
 
 (defn send-scramble-form-button []
-  (let [on-click-fn (fn []
-                      (swap!
-                        session
-                        assoc
-                        :scramble/result
-                        "mocked-true"))]
-    [:button
-     {:type "button" :class "btn btn-success" :on-click on-click-fn}
-     "Some action! "]))
+  [:button
+   {:type "button" :class "btn btn-success" :on-click make-example-ajax-call}
+   "Some action! "])
 
 
 (defn scramble-header []
