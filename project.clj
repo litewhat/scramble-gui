@@ -15,6 +15,7 @@
                  [compojure "1.6.1"]
                  [cprop "0.1.11"]
                  [funcool/struct "1.3.0"]
+                 [jumblerg/ring-cors "2.0.0"]
                  [luminus-immutant "0.2.4"]
                  [luminus/ring-ttl-session "0.3.2"]
                  [markdown-clj "1.0.2"]
@@ -74,8 +75,8 @@
                  :closure-warnings
                  {:externs-validation :off :non-standard-jsdoc :off}
                  :externs ["react/externs/react.js"]}}}}
-             
-             
+
+
              :aot :all
              :uberjar-name "clojure-challenge-gui.jar"
              :source-paths ["env/prod/clj"]
@@ -97,23 +98,23 @@
                   :plugins      [[com.jakemccrary/lein-test-refresh "0.23.0"]
                                  [lein-doo "0.1.10"]
                                  [lein-figwheel "0.5.16"]]
-                  :cljsbuild
-                  {:builds
-                   {:app
-                    {:source-paths ["src/cljs" "src/cljc" "env/dev/cljs"]
-                     :figwheel
-                     {:on-jsload "clojure-challenge-gui.core/mount-components"}
-                     :compiler
-                     {:main "clojure-challenge-gui.app"
-                      :asset-path "/js/out"
-                      :output-to "target/cljsbuild/public/js/app.js"
-                      :output-dir "target/cljsbuild/public/js/out"
-                      :source-map true
-                      :optimizations :none
-                      :pretty-print true}}}}
-                  
-                  
-                  
+
+                  :cljsbuild {:builds
+                              {:app
+                               {:source-paths ["src/cljs" "src/cljc" "env/dev/cljs"]
+                                :figwheel
+                                              {:on-jsload "clojure-challenge-gui.core/mount-components"}
+                                :compiler
+                                              {:main "clojure-challenge-gui.app"
+                                               :asset-path "/js/out"
+                                               :output-to "target/cljsbuild/public/js/app.js"
+                                               :output-dir "target/cljsbuild/public/js/out"
+                                               :source-map true
+                                               :optimizations :none
+                                               :pretty-print true}}}}
+
+
+
                   :doo {:build "test"}
                   :source-paths ["env/dev/clj"]
                   :resource-paths ["env/dev/resources"]
@@ -122,16 +123,13 @@
                                (pjstadig.humane-test-output/activate!)]}
    :project/test {:jvm-opts ["-Dconf=test-config.edn"]
                   :resource-paths ["env/test/resources"]
-                  :cljsbuild
-                  {:builds
-                   {:test
-                    {:source-paths ["src/cljc" "src/cljs" "test/cljs"]
-                     :compiler
-                     {:output-to "target/test.js"
-                      :main "clojure-challenge-gui.doo-runner"
-                      :optimizations :whitespace
-                      :pretty-print true}}}}
-                  
-                  }
+                  :cljsbuild {:builds
+                              {:test
+                               {:source-paths ["src/cljc" "src/cljs" "test/cljs"]
+                                :compiler
+                                              {:output-to "target/test.js"
+                                               :main "clojure-challenge-gui.doo-runner"
+                                               :optimizations :whitespace
+                                               :pretty-print true}}}}}
    :profiles/dev {}
    :profiles/test {}})
