@@ -3,19 +3,19 @@
             [cheshire.generate :as cheshire]
             [cognitect.transit :as transit]
             [clojure.tools.logging :as log]
+            [clojure-challenge-gui.config :refer [env]]
             [clojure-challenge-gui.layout :refer [error-page]]
+            [immutant.web.middleware :refer [wrap-session]]
+            [jumblerg.middleware.cors :refer [wrap-cors]]
             [ring.middleware.anti-forgery :refer [wrap-anti-forgery]]
             [ring.middleware.webjars :refer [wrap-webjars]]
             [muuntaja.core :as muuntaja]
             [muuntaja.format.json :refer [json-format]]
             [muuntaja.format.transit :as transit-format]
             [muuntaja.middleware :refer [wrap-format wrap-params]]
-            [clojure-challenge-gui.config :refer [env]]
-            [ring.middleware.flash :refer [wrap-flash]]
-            [immutant.web.middleware :refer [wrap-session]]
-            [ring.middleware.defaults :refer [site-defaults wrap-defaults]])
-  (:import 
-           [org.joda.time ReadableInstant]))
+            [ring.middleware.defaults :refer [site-defaults wrap-defaults]]
+            [ring.middleware.flash :refer [wrap-flash]])
+  (:import [org.joda.time ReadableInstant]))
 
 (defn wrap-internal-error [handler]
   (fn [req]
@@ -78,4 +78,5 @@
         (-> site-defaults
             (assoc-in [:security :anti-forgery] false)
             (dissoc :session)))
-      wrap-internal-error))
+      wrap-internal-error
+      (wrap-cors #".*localhost.*")))
