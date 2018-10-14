@@ -12,6 +12,7 @@
                  [cljsjs/react-transition-group "2.3.1-0"]
                  [cljsjs/react-popper "0.10.4-0"]
                  [com.cognitect/transit-java "0.8.337"]
+                 [com.taoensso/timbre "4.10.0"]
                  [compojure "1.6.1"]
                  [cprop "0.1.11"]
                  [funcool/struct "1.3.0"]
